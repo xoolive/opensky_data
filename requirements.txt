@@ -1,0 +1,6 @@
+maya
+numpy
+pandas
+paramiko
+requests
+tqdm
