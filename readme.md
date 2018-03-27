@@ -36,7 +36,7 @@ optional arguments:
   -s SETTINGS     setting file with login information
 ```
 
-Get flight `DLH66N` on November 11th 2017 (OpenSky Workshop day!):
+Get flight `DLH66N` on November 23rd 2017 (OpenSky Workshop day!):
 ```sh
 python opensky_data.py 2017-11-23 -c DLH66N -o DLH66N.csv
 ```
@@ -46,6 +46,8 @@ Get all trajectories over (the bounding box of) Switzerland between 6am and
 ```sh
 python opensky_data.py 2018-01-01T06:00 -u 2018-01-01T07:00 -b Switzerland
 ```
+
+See an example of the API usage in `notebook.ipynb`.
 
 ## Under the hood
 
