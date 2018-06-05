@@ -4,7 +4,7 @@ import tempfile
 from datetime import datetime, timedelta
 from io import StringIO
 from pathlib import Path
-from typing import Iterable, Optional, Tuple, Union
+from typing import Iterable, Iterator, Optional, Tuple, Union
 
 import numpy as np
 
@@ -32,9 +32,9 @@ class ImpalaWrapper(object):
 
     @staticmethod
     def _round_time(dt: datetime, how: str='before',
-                    date_delta: timedelta=timedelta(hours=1)) -> datetime:
+                    by: timedelta=timedelta(hours=1)) -> datetime:
 
-        round_to = date_delta.total_seconds()
+        round_to = by.total_seconds()
         seconds = (dt - dt.min).seconds
 
         if how == 'after':
@@ -45,6 +45,17 @@ class ImpalaWrapper(object):
             raise ValueError("parameter how must be `before` or `after`")
 
         return dt + timedelta(0, rounding - seconds, -dt.microsecond)
+
+    @staticmethod
+    def _split_times(before: datetime, after: datetime,
+                     by: timedelta = timedelta(hours=1)
+                     ) -> Iterator[Tuple[datetime, ...]]:
+
+        before_hour = ImpalaWrapper._round_time(before, by=by)
+        seq = np.arange(before_hour, after + by, by).astype(datetime)
+
+        for bh, ah in zip(seq[:-1], seq[1:]):
+            yield (before, after, bh, ah)
 
     @staticmethod
     def _format_dataframe(df: pd.DataFrame,
@@ -117,9 +128,6 @@ class ImpalaWrapper(object):
                 other_columns: str="",
                 other_where: str="") -> Optional[pd.DataFrame]:
 
-        before_hour = self._round_time(before, how='before')
-        after_hour = self._round_time(after, how='after')
-
         if isinstance(serials, Iterable):
             other_columns += ", state_vectors_data4.serials s "
             other_where += "and s.ITEM in {} ".format(tuple(serials))
@@ -142,17 +150,16 @@ class ImpalaWrapper(object):
             other_where += "and lon>={} and lon<={} ".format(west, east)
             other_where += "and lat>={} and lat<={} ".format(south, north)
 
-        seq = np.arange(before_hour, after_hour + timedelta(hours=1),
-                        timedelta(hours=1)).astype(datetime)
         cumul = []
+        sequence = list(ImpalaWrapper._split_times(before, after))
 
-        for before, after in tqdm(zip(seq, seq[1:]), total=len(seq)-1):
+        for bt, at, bh, ah in tqdm(sequence):
 
             request = self.basic_request.format(
-                before_time=before.timestamp(),
-                after_time=after.timestamp(),
-                before_hour=before_hour.timestamp(),
-                after_hour=after_hour.timestamp(),
+                before_time=bt.timestamp(),
+                after_time=at.timestamp(),
+                before_hour=bh.timestamp(),
+                after_hour=ah.timestamp(),
                 other_columns=other_columns,
                 other_where=other_where)
 

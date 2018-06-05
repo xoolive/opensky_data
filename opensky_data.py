@@ -42,6 +42,8 @@ def opensky_data(date, until, output_file, settings, bounds, **kwargs):
     before = datetime.fromtimestamp(maya.parse(date).epoch)
     if until is None:
         until = before + timedelta(days=1)
+    else:
+        until = datetime.fromtimestamp(maya.parse(until).epoch)
 
     config = configparser.ConfigParser()
     config.read(settings.as_posix())
