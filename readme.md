@@ -3,6 +3,12 @@
 Xavier Olive, 2018  
 MIT license
 
+**No longer maintained: this repository is no longer active.  
+There *are* bugs that will not be fixed here.  
+The same functionality is available in the actively developped
+[traffic](https://github.com/xoolive/traffic) Python library.**
+
+
 ## Requirements
 
 ```sh
